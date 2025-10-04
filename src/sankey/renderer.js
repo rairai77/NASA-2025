@@ -34,11 +34,11 @@ export function renderDiagram(svg, nodes, links, personColors, animationDuration
     // Draw horizontal row lines (like a table)
     const rowLines = svg.append("g").attr("class", "row-lines");
     
-    // Create a map of row number to row name (only use room names, not people or targets)
+    // Create a map of row number to row name (only use room/module names, not astronauts or targets)
     const rowToName = {};
     Object.entries(nodeRows).forEach(([name, rowNum]) => {
-        // Skip person names and targets, only label with room names
-        if (!name.startsWith("Person") && !name.startsWith("-Target-")) {
+        // Skip astronaut names and targets, only label with module/room names
+        if (!name.startsWith("Astronaut") && !name.startsWith("-Target-")) {
             // Take the first room name we encounter for each row
             if (!rowToName[rowNum]) {
                 rowToName[rowNum] = name;
@@ -120,11 +120,11 @@ export function renderDiagram(svg, nodes, links, personColors, animationDuration
         .attr("height", d => d.y1 - d.y0)
         .attr("width", d => d.x1 - d.x0)
         .attr("fill", d => {
-            // Check if this node is a person
+            // Check if this node is an astronaut
             if (personColors[d.name]) return personColors[d.name];
-            // Targets in a darker teal
-            if (d.isTarget) return "#00897b";
-            return "#26a69a";  // Pleasant teal for collections (was #999 grey)
+            // Targets in a darker blue
+            if (d.isTarget) return "#1976d2";
+            return "#2196f3";  // Blue for modules
         })
         .attr("rx", 4)  // rounded corners
         .attr("opacity", 0);
