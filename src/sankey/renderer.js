@@ -39,13 +39,14 @@ export function renderDiagram(svg, nodes, links, personColors, animationDuration
     Object.entries(nodeRows).forEach(([name, rowNum]) => {
         // Skip person names and targets, only label with room names
         if (!name.startsWith("Person") && !name.startsWith("-Target-")) {
+            // Take the first room name we encounter for each row
             if (!rowToName[rowNum]) {
                 rowToName[rowNum] = name;
             }
         }
     });
     
-    // Draw lines and labels for each unique row
+    // Draw lines and labels for each unique row that has a name
     Object.keys(rowToName).forEach(rowNum => {
         const y = 50 + parseInt(rowNum) * rowHeight;
         
@@ -53,21 +54,21 @@ export function renderDiagram(svg, nodes, links, personColors, animationDuration
         rowLines.append("line")
             .attr("x1", 0)
             .attr("x2", svg.attr("width"))
-            .attr("y1", y + 15) // Center of row
-            .attr("y2", y + 15)
+            .attr("y1", y + rowHeight / 2) // Center of row
+            .attr("y2", y + rowHeight / 2)
             .attr("stroke", "#e0e0e0")
             .attr("stroke-width", 1)
             .attr("stroke-dasharray", "5,5")
             .attr("opacity", 0.5);
         
-        // Add row label on the left (only room names) - LARGER FONT
+        // Add row label on the left, centered vertically in the row
         rowLines.append("text")
             .attr("x", 10)
-            .attr("y", y + 15)
+            .attr("y", y + rowHeight / 2)  // Center vertically
             .attr("dy", "0.35em")
             .attr("text-anchor", "start")
             .text(rowToName[rowNum])
-            .style("font-size", "14px")  // Increased from 11px
+            .style("font-size", "14px")
             .style("font-family", "sans-serif")
             .style("fill", "#666");
     });
