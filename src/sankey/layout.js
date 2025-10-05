@@ -2,7 +2,7 @@
 // CUSTOM LAYOUT WITH FIXED ROWS
 // ============================================
 
-export function customLayoutWithFixedRows(data, width, height) {
+export function customLayoutWithFixedRows(data, width, height, isMobile = false) {
     const { nodes, links } = data;
     
     // Find the range of stages (horizontal position)
@@ -10,8 +10,10 @@ export function customLayoutWithFixedRows(data, width, height) {
     const minStage = stages[0];
     const maxStage = stages[stages.length - 1];
     
-    // Calculate x positions for each stage - INCREASED SPACING
-    const stageWidth = (width - 400) / (maxStage - minStage);  // Increased gap (reduced from 600)
+    // Calculate x positions for each stage - INCREASE spacing on mobile
+    const leftMargin = isMobile ? 150 : 200;
+    const rightReserve = isMobile ? 200 : 400;
+    const stageWidth = (width - rightReserve) / (maxStage - minStage);
     
     // Find max stage for targets to align them
     const targetNodes = nodes.filter(n => n.isTarget);
@@ -23,7 +25,7 @@ export function customLayoutWithFixedRows(data, width, height) {
     
     // Calculate positions
     const rowHeight = (height - 100) / (maxRow + 1);
-    const nodeWidth = 60;  // Width
+    const nodeWidth = isMobile ? 50 : 60;  // Slightly smaller on mobile
     const nodeHeight = 20; // Height
     
     nodes.forEach((node, i) => {
@@ -32,10 +34,10 @@ export function customLayoutWithFixedRows(data, width, height) {
         // X position based on stage
         if (node.isTarget) {
             // All targets align at the same x position (rightmost)
-            node.x0 = 200 + (maxTargetStage - minStage) * stageWidth;
+            node.x0 = leftMargin + (maxTargetStage - minStage) * stageWidth;
         } else {
             const normalizedStage = node.stage - minStage;
-            node.x0 = 200 + normalizedStage * stageWidth;
+            node.x0 = leftMargin + normalizedStage * stageWidth;
         }
         node.x1 = node.x0 + nodeWidth;
         

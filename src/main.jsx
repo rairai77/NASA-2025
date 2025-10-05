@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import * as d3 from "d3";
 import './style.css';
@@ -12,13 +12,23 @@ import { animationSettings } from "./sankey/config.js";
 function App() {
     const [mode, setMode] = useState('config'); // 'config' or 'chart'
     const [config, setConfig] = useState(null);
+    const [isMobile, setIsMobile] = useState(false);
 
-    const handleConfigSubmit = (submittedConfig) => {
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    const handleConfigSubmit = (submittedConfig, visualizationType) => {
         setConfig(submittedConfig);
         setMode('chart');
         
         // Small delay to let React render the chart div
-        setTimeout(() => renderSankeyChart(submittedConfig), 100);
+        setTimeout(() => renderSankeyChart(submittedConfig, isMobile), 100);
     };
 
     const handleBackToConfig = () => {
@@ -35,8 +45,11 @@ function App() {
             {mode === 'chart' && (
                 <div style={{
                     minHeight: '100vh',
+                    height: '100vh',
+                    display: 'flex',
+                    flexDirection: 'column',
                     background: 'radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%)',
-                    backgroundImage: `
+                    backgroundImage: isMobile ? 'none' : `
                         radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%),
                         radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)),
                         radial-gradient(2px 2px at 60px 70px, #fff, rgba(0,0,0,0)),
@@ -46,30 +59,31 @@ function App() {
                     `,
                     backgroundSize: '100% 100%, 200px 200px, 200px 200px, 200px 200px, 200px 200px, 200px 200px',
                     backgroundRepeat: 'no-repeat, repeat, repeat, repeat, repeat, repeat',
-                    padding: '0'
+                    overflow: 'hidden'
                 }}>
                     {/* Header Bar */}
                     <div style={{
                         background: 'rgba(10, 14, 39, 0.95)',
                         backdropFilter: 'blur(10px)',
                         borderBottom: '1px solid rgba(100,150,255,0.2)',
-                        padding: '20px',
+                        padding: isMobile ? '15px' : '20px',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '20px',
-                        boxShadow: '0 2px 20px rgba(0,0,0,0.5), 0 0 100px rgba(33,150,243,0.1)'
+                        gap: isMobile ? '10px' : '20px',
+                        boxShadow: '0 2px 20px rgba(0,0,0,0.5), 0 0 100px rgba(33,150,243,0.1)',
+                        flexShrink: 0
                     }}>
                         <button 
                             onClick={handleBackToConfig}
                             style={{
-                                padding: '10px 20px',
+                                padding: isMobile ? '8px 12px' : '10px 20px',
                                 background: 'linear-gradient(135deg, #2196f3, #1976d2)',
                                 color: 'white',
                                 border: 'none',
                                 borderRadius: '8px',
                                 cursor: 'pointer',
                                 fontWeight: '600',
-                                fontSize: '14px',
+                                fontSize: isMobile ? '12px' : '14px',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '8px',
@@ -86,67 +100,75 @@ function App() {
                             }}
                         >
                             <span style={{ fontSize: '18px' }}>←</span>
-                            <span>Back to Editor</span>
+                            <span>{isMobile ? 'Back' : 'Back to Editor'}</span>
                         </button>
                         
                         <div>
                             <h1 style={{ 
                                 margin: 0, 
-                                fontSize: '24px', 
+                                fontSize: isMobile ? '18px' : '24px', 
                                 fontWeight: '700',
                                 color: 'white',
                                 textShadow: '0 0 20px rgba(33,150,243,0.5)'
                             }}>
-                                🛰️ Space Habitat Activity Flow
+                                🛰️ {isMobile ? 'Activity Flow' : 'Space Habitat Activity Flow'}
                             </h1>
-                            <p style={{ 
-                                margin: '4px 0 0 0', 
-                                fontSize: '14px', 
-                                color: 'rgba(255,255,255,0.7)',
-                                fontWeight: '500'
-                            }}>
-                                Tracking crew movements across habitat modules
-                            </p>
+                            {!isMobile && (
+                                <p style={{ 
+                                    margin: '4px 0 0 0', 
+                                    fontSize: '14px', 
+                                    color: 'rgba(255,255,255,0.7)',
+                                    fontWeight: '500'
+                                }}>
+                                    Tracking crew movements across habitat modules in orbit
+                                </p>
+                            )}
                         </div>
                     </div>
 
                     {/* Chart Container */}
                     <div style={{
-                        padding: '20px 0',
+                        flex: 1,
+                        padding: isMobile ? '10px' : '20px',
                         display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'flex-start'
+                        justifyContent: isMobile ? 'flex-start' : 'center',
+                        alignItems: 'center',
+                        overflowX: 'auto',
+                        overflowY: 'auto'
                     }}>
                         <div style={{
                             background: 'rgba(255, 255, 255, 0.98)',
-                            borderRadius: '16px',
+                            borderRadius: isMobile ? '12px' : '16px',
                             boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 100px rgba(33,150,243,0.2)',
-                            padding: '30px 20px',
-                            display: 'inline-block',
-                            border: '1px solid rgba(33,150,243,0.3)'
+                            padding: isMobile ? '15px 10px' : '30px 20px',
+                            border: '1px solid rgba(33,150,243,0.3)',
+                            display: 'inline-block'
                         }}>
                             <div id="chart"></div>
                         </div>
                     </div>
 
                     {/* Footer Info */}
-                    <div style={{
-                        textAlign: 'center',
-                        padding: '20px',
-                        color: 'rgba(255,255,255,0.8)',
-                        fontSize: '14px'
-                    }}>
-                        <p style={{ margin: 0 }}>
-                            Each colored path represents a crew member's journey through different habitat modules during their day
-                        </p>
-                    </div>
+                    {!isMobile && (
+                        <div style={{
+                            textAlign: 'center',
+                            padding: '20px',
+                            color: 'rgba(255,255,255,0.8)',
+                            fontSize: '14px',
+                            flexShrink: 0
+                        }}>
+                            <p style={{ margin: 0 }}>
+                                Each colored path represents a crew member's journey through different habitat modules during their day
+                            </p>
+                        </div>
+                    )}
                 </div>
             )}
         </div>
     );
 }
 
-function renderSankeyChart(config) {
+function renderSankeyChart(config, isMobile) {
     const { personPaths, nodeRows, rowColors } = config;
 
     // Generate the Sankey data
@@ -157,12 +179,12 @@ function renderSankeyChart(config) {
         links: dataLinks
     };
 
-    // Visualization dimensions
-    const width = 1600;
-    const height = 700;
+    // Visualization dimensions - adjust for mobile
+    const width = isMobile ? Math.max(window.innerWidth - 40, 1000) : 1600;
+    const height = isMobile ? 500 : 700;
 
-    // Apply layout
-    const { nodes, links } = customLayoutWithFixedRows(data, width, height);
+    // Apply layout - pass isMobile parameter
+    const { nodes, links } = customLayoutWithFixedRows(data, width, height, isMobile);
 
     // Create SVG
     const svg = d3
@@ -178,6 +200,14 @@ function renderSankeyChart(config) {
     animateCircles(svg, nodes, links, linkPaths, personColors, personLinkChains, animationSettings);
 
     console.log("Sankey diagram rendered from config");
+    
+    // On mobile, scroll to show the left side first
+    if (isMobile) {
+        setTimeout(() => {
+            const chartContainer = document.getElementById('chart').parentElement.parentElement;
+            chartContainer.scrollLeft = 0;
+        }, 200);
+    }
 }
 
 // Mount the React app

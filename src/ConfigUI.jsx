@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { defaults } from './defaults.js';
 
 export function ConfigUI({ onSubmit }) {
@@ -13,6 +13,18 @@ export function ConfigUI({ onSubmit }) {
         }
         return initial;
     });
+    const [isMobile, setIsMobile] = useState(false);
+    const [currentPersonIndex, setCurrentPersonIndex] = useState(0);
+
+    // Detect mobile
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     // Update schedule when people/hours change
     const updateScheduleSize = (newPeople, newHours) => {
@@ -35,6 +47,9 @@ export function ConfigUI({ onSubmit }) {
         const newNum = parseInt(e.target.value);
         setNumPeople(newNum);
         updateScheduleSize(newNum, numHours);
+        if (currentPersonIndex >= newNum) {
+            setCurrentPersonIndex(0);
+        }
     };
 
     const handleHoursChange = (e) => {
@@ -44,6 +59,13 @@ export function ConfigUI({ onSubmit }) {
     };
 
     const handleDrop = (person, hour, room) => {
+        setSchedule(prev => ({
+            ...prev,
+            [person]: prev[person].map((r, idx) => idx === hour ? room : r)
+        }));
+    };
+
+    const handleMobileRoomSelect = (person, hour, room) => {
         setSchedule(prev => ({
             ...prev,
             [person]: prev[person].map((r, idx) => idx === hour ? room : r)
@@ -90,7 +112,7 @@ export function ConfigUI({ onSubmit }) {
         return Math.round((filledSlots / totalSlots) * 100);
     };
 
-    const handleSubmit = () => {
+    const handleVisualize = (visualizationType) => {
         if (!isScheduleComplete()) return;
 
         const personPaths = {};
@@ -127,12 +149,335 @@ export function ConfigUI({ onSubmit }) {
             rowColors[i] = defaults.rowColors[i % Object.keys(defaults.rowColors).length];
         }
 
-        onSubmit({ personPaths, nodeRows, rowColors });
+        onSubmit({ personPaths, nodeRows, rowColors }, visualizationType);
     };
 
     const people = Object.keys(schedule);
     const completionPercentage = getCompletionPercentage();
+    const currentPerson = people[currentPersonIndex];
 
+    if (isMobile) {
+        return <MobileConfigUI 
+            numPeople={numPeople}
+            numHours={numHours}
+            schedule={schedule}
+            currentPersonIndex={currentPersonIndex}
+            setCurrentPersonIndex={setCurrentPersonIndex}
+            handlePeopleChange={handlePeopleChange}
+            handleHoursChange={handleHoursChange}
+            handleMobileRoomSelect={handleMobileRoomSelect}
+            clearPerson={clearPerson}
+            clearSchedule={clearSchedule}
+            randomFill={randomFill}
+            handleVisualize={handleVisualize}
+            isScheduleComplete={isScheduleComplete}
+            completionPercentage={completionPercentage}
+            people={people}
+            currentPerson={currentPerson}
+        />;
+    }
+
+    return (
+        <DesktopConfigUI 
+            numPeople={numPeople}
+            numHours={numHours}
+            schedule={schedule}
+            handlePeopleChange={handlePeopleChange}
+            handleHoursChange={handleHoursChange}
+            handleDrop={handleDrop}
+            clearPerson={clearPerson}
+            clearSchedule={clearSchedule}
+            randomFill={randomFill}
+            handleVisualize={handleVisualize}
+            isScheduleComplete={isScheduleComplete}
+            completionPercentage={completionPercentage}
+            people={people}
+        />
+    );
+}
+
+// MOBILE UI
+function MobileConfigUI({
+    numPeople, numHours, schedule, currentPersonIndex, setCurrentPersonIndex,
+    handlePeopleChange, handleHoursChange, handleMobileRoomSelect, clearPerson,
+    clearSchedule, randomFill, handleVisualize, isScheduleComplete, completionPercentage,
+    people, currentPerson
+}) {
+    return (
+        <div style={{ 
+            minHeight: '100vh',
+            background: 'radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%)',
+            padding: '10px',
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+        }}>
+            {/* Header */}
+            <div style={{
+                background: 'linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0f1419 100%)',
+                padding: '20px 15px',
+                color: 'white',
+                borderRadius: '12px',
+                marginBottom: '15px'
+            }}>
+                <h1 style={{ margin: '0 0 5px 0', fontSize: '24px', fontWeight: '700' }}>
+                    🛰️ CrossPaths
+                </h1>
+                <p style={{ margin: 0, fontSize: '13px', opacity: 0.9 }}>
+                    Schedule builder
+                </p>
+            </div>
+
+            {/* Controls */}
+            <div style={{ 
+                background: 'white',
+                borderRadius: '12px',
+                padding: '15px',
+                marginBottom: '15px'
+            }}>
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+                    <div style={{ flex: 1 }}>
+                        <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', color: '#6c757d', marginBottom: '5px' }}>
+                            CREW
+                        </label>
+                        <input 
+                            type="number" 
+                            min="1" 
+                            max="10" 
+                            value={numPeople} 
+                            onChange={handlePeopleChange}
+                            style={{ 
+                                width: '100%',
+                                padding: '10px',
+                                border: '2px solid #dee2e6',
+                                borderRadius: '8px',
+                                fontSize: '16px',
+                                fontWeight: '600'
+                            }}
+                        />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                        <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', color: '#6c757d', marginBottom: '5px' }}>
+                            HOURS
+                        </label>
+                        <input 
+                            type="number" 
+                            min="1" 
+                            max="12" 
+                            value={numHours} 
+                            onChange={handleHoursChange}
+                            style={{ 
+                                width: '100%',
+                                padding: '10px',
+                                border: '2px solid #dee2e6',
+                                borderRadius: '8px',
+                                fontSize: '16px',
+                                fontWeight: '600'
+                            }}
+                        />
+                    </div>
+                </div>
+
+                {/* Progress Bar */}
+                <div style={{ marginBottom: '15px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: '600', color: '#6c757d' }}>PROGRESS</span>
+                        <span style={{ fontSize: '11px', fontWeight: '600', color: '#495057' }}>{completionPercentage}%</span>
+                    </div>
+                    <div style={{ position: 'relative', height: '8px', background: '#e9ecef', borderRadius: '4px', overflow: 'hidden' }}>
+                        <div style={{
+                            height: '100%',
+                            width: `${completionPercentage}%`,
+                            background: completionPercentage === 100 
+                                ? 'linear-gradient(90deg, #4caf50, #66bb6a)' 
+                                : 'linear-gradient(90deg, #2196f3, #42a5f5)',
+                            transition: 'width 0.3s ease'
+                        }}></div>
+                    </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <button 
+                        onClick={clearSchedule}
+                        style={{ 
+                            flex: '1 1 auto',
+                            padding: '10px 12px',
+                            background: 'white',
+                            border: '2px solid #dee2e6',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontWeight: '600',
+                            fontSize: '13px'
+                        }}
+                    >
+                        🗑️ Clear
+                    </button>
+                    <button 
+                        onClick={randomFill}
+                        style={{ 
+                            flex: '1 1 auto',
+                            padding: '10px 12px',
+                            background: '#ff9800',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontWeight: '600',
+                            fontSize: '13px'
+                        }}
+                    >
+                        🎲 Random
+                    </button>
+                </div>
+            </div>
+
+            {/* Person Navigator */}
+            <div style={{
+                background: 'white',
+                borderRadius: '12px',
+                padding: '15px',
+                marginBottom: '15px'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '15px' }}>
+                    <button
+                        onClick={() => setCurrentPersonIndex(Math.max(0, currentPersonIndex - 1))}
+                        disabled={currentPersonIndex === 0}
+                        style={{
+                            padding: '8px 12px',
+                            background: currentPersonIndex === 0 ? '#e9ecef' : '#2196f3',
+                            color: currentPersonIndex === 0 ? '#adb5bd' : 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: currentPersonIndex === 0 ? 'not-allowed' : 'pointer',
+                            fontWeight: '600',
+                            fontSize: '18px'
+                        }}
+                    >
+                        ←
+                    </button>
+                    <div style={{ 
+                        flex: 1, 
+                        textAlign: 'center',
+                        background: defaults.personColors[currentPersonIndex % defaults.personColors.length] + '20',
+                        padding: '12px',
+                        borderRadius: '8px',
+                        margin: '0 10px'
+                    }}>
+                        <div style={{ 
+                            fontSize: '18px', 
+                            fontWeight: '700',
+                            color: defaults.personColors[currentPersonIndex % defaults.personColors.length]
+                        }}>
+                            {currentPerson}
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#6c757d', marginTop: '2px' }}>
+                            {currentPersonIndex + 1} of {numPeople}
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => setCurrentPersonIndex(Math.min(numPeople - 1, currentPersonIndex + 1))}
+                        disabled={currentPersonIndex === numPeople - 1}
+                        style={{
+                            padding: '8px 12px',
+                            background: currentPersonIndex === numPeople - 1 ? '#e9ecef' : '#2196f3',
+                            color: currentPersonIndex === numPeople - 1 ? '#adb5bd' : 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: currentPersonIndex === numPeople - 1 ? 'not-allowed' : 'pointer',
+                            fontWeight: '600',
+                            fontSize: '18px'
+                        }}
+                    >
+                        →
+                    </button>
+                </div>
+                <button
+                    onClick={() => clearPerson(currentPerson)}
+                    style={{
+                        width: '100%',
+                        padding: '10px',
+                        background: 'white',
+                        border: '2px solid #dee2e6',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontWeight: '600',
+                        fontSize: '13px'
+                    }}
+                >
+                    Clear This Person
+                </button>
+            </div>
+
+            {/* Hour Schedule */}
+            <div style={{
+                background: 'white',
+                borderRadius: '12px',
+                padding: '15px',
+                marginBottom: '15px'
+            }}>
+                <h3 style={{ margin: '0 0 15px 0', fontSize: '16px', fontWeight: '700' }}>
+                    📅 Hourly Schedule
+                </h3>
+                {Array.from({ length: numHours }, (_, hour) => (
+                    <div key={hour} style={{ marginBottom: '12px' }}>
+                        <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#6c757d', marginBottom: '6px' }}>
+                            Hour {hour + 1}
+                        </label>
+                        <select
+                            value={schedule[currentPerson][hour] || ''}
+                            onChange={(e) => handleMobileRoomSelect(currentPerson, hour, e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '12px',
+                                border: '2px solid #dee2e6',
+                                borderRadius: '8px',
+                                fontSize: '14px',
+                                fontWeight: '600',
+                                background: schedule[currentPerson][hour] ? '#2196f3' : 'white',
+                                color: schedule[currentPerson][hour] ? 'white' : '#495057',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            <option value="">Select room...</option>
+                            {defaults.availableRooms.map(room => (
+                                <option key={room} value={room}>{room}</option>
+                            ))}
+                        </select>
+                    </div>
+                ))}
+            </div>
+
+            {/* Visualize Buttons */}
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+                <button 
+                    onClick={() => handleVisualize('chart')} 
+                    disabled={!isScheduleComplete()}
+                    style={{ 
+                        flex: 1,
+                        padding: '14px',
+                        background: isScheduleComplete() 
+                            ? 'linear-gradient(135deg, #2196f3, #42a5f5)' 
+                            : '#dee2e6',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: isScheduleComplete() ? 'pointer' : 'not-allowed',
+                        fontWeight: '700',
+                        fontSize: '14px'
+                    }}
+                >
+                    📊 Flow Chart
+                </button>
+            </div>
+        </div>
+    );
+}
+
+// DESKTOP UI
+function DesktopConfigUI({
+    numPeople, numHours, schedule, handlePeopleChange, handleHoursChange,
+    handleDrop, clearPerson, clearSchedule, randomFill, handleVisualize,
+    isScheduleComplete, completionPercentage, people
+}) {
     return (
         <div style={{ 
             minHeight: '100vh',
@@ -177,10 +522,10 @@ export function ConfigUI({ onSubmit }) {
                         pointerEvents: 'none'
                     }}></div>
                     <h1 style={{ margin: '0 0 10px 0', fontSize: '32px', fontWeight: '700', position: 'relative', zIndex: 1 }}>
-                        🛰️ CrossPaths for Space Habitats 
+                        🛰️ CrossPaths for Space Habitats
                     </h1>
                     <p style={{ margin: 0, fontSize: '16px', opacity: 0.9, position: 'relative', zIndex: 1 }}>
-                        Designate crew activities across habitat modules and visualize daily routine
+                        Designate crew activities across habitat modules and visualize daily routines
                     </p>
                 </div>
 
@@ -315,10 +660,10 @@ export function ConfigUI({ onSubmit }) {
                             </button>
                             
                             <button 
-                                onClick={handleSubmit} 
+                                onClick={() => handleVisualize('chart')} 
                                 disabled={!isScheduleComplete()}
                                 style={{ 
-                                    padding: '12px 24px',
+                                    padding: '12px 20px',
                                     background: isScheduleComplete() 
                                         ? 'linear-gradient(135deg, #2196f3, #42a5f5)' 
                                         : '#dee2e6',
@@ -344,7 +689,7 @@ export function ConfigUI({ onSubmit }) {
                                     }
                                 }}
                             >
-                                🚀 Visualize Schedule
+                                📊 Visualize Flow
                             </button>
                         </div>
                     </div>
