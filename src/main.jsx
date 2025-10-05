@@ -105,8 +105,8 @@ function App() {
                                 color: 'rgba(255,255,255,0.7)',
                                 fontWeight: '500'
                             }}>
-                                Tracking crew movements across habitat modules in orbit
-                            </p>
+                                Tracking crew movements across habitat modules
+                            </p
                         </div>
                     </div>
 

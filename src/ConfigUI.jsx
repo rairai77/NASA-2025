@@ -177,10 +177,10 @@ export function ConfigUI({ onSubmit }) {
                         pointerEvents: 'none'
                     }}></div>
                     <h1 style={{ margin: '0 0 10px 0', fontSize: '32px', fontWeight: '700', position: 'relative', zIndex: 1 }}>
-                        🛰️ Space Habitat Schedule Builder
+                        🛰️ CrossPaths for Space Habitats 
                     </h1>
                     <p style={{ margin: 0, fontSize: '16px', opacity: 0.9, position: 'relative', zIndex: 1 }}>
-                        Plan crew activities across habitat modules and visualize daily routines in orbit
+                        Designate crew activities across habitat modules and visualize daily routine
                     </p>
                 </div>
 
