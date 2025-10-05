@@ -26,8 +26,14 @@ export function generateSankeyData(personPaths, nodeRows) {
                     row: nodeRows[collection], // vertical position (fixed row)
                     id: key,
                     isTarget: collection.startsWith("-Target-"),
+                    peopleHere: [], // Track which people visit this node
                 });
                 nodeMap.set(key, nodeIndex);
+            }
+            // Add this person to the node's visitor list
+            const nodeIndex = nodeMap.get(key);
+            if (!nodes[nodeIndex].peopleHere.includes(person)) {
+                nodes[nodeIndex].peopleHere.push(person);
             }
         });
     });
@@ -41,6 +47,7 @@ export function generateSankeyData(personPaths, nodeRows) {
             row: nodeRows[person],
             id: `person-${person}`,
             isPerson: true,
+            peopleHere: [person],
         });
         nodeMap.set(`person-${person}`, nodeIndex);
     });

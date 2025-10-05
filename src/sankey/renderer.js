@@ -110,30 +110,131 @@ export function renderDiagram(svg, nodes, links, personColors, animationDuration
         .ease(d3.easeLinear)
         .attr("stroke-dashoffset", 0);
 
-    // Draw nodes
-    const nodeRects = svg.append("g")
-        .selectAll("rect")
-        .data(nodes)
-        .join("rect")
-        .attr("x", d => d.x0)
-        .attr("y", d => d.y0)
-        .attr("height", d => d.y1 - d.y0)
-        .attr("width", d => d.x1 - d.x0)
-        .attr("fill", d => {
-            // Check if this node is a crew member
-            if (personColors[d.name]) return personColors[d.name];
-            // Targets in a darker blue
-            if (d.isTarget) return "#1976d2";
-            return "#2196f3";  // Blue for modules
-        })
-        .attr("rx", 4)  // rounded corners
-        .attr("opacity", 0);
-
-    // Animate nodes
-    nodeRects.transition()
-        .delay(d => (d.stage + 1) * animationDuration * 0.7)
-        .duration(500)
-        .attr("opacity", 1);
+    // Draw nodes - SPLIT INTO SECTIONS FOR MULTIPLE PEOPLE
+    const nodeGroups = svg.append("g");
+    
+    nodes.forEach(node => {
+        const peopleCount = node.peopleHere ? node.peopleHere.length : 1;
+        const nodeHeight = node.y1 - node.y0;
+        const sectionHeight = nodeHeight / peopleCount;
+        const borderRadius = 4;
+        
+        if (node.isPerson || !node.peopleHere || peopleCount === 1) {
+            // Draw single-colored node
+            let color;
+            if (node.isPerson) {
+                color = personColors[node.name];
+            } else if (peopleCount === 1 && node.peopleHere && node.peopleHere.length > 0) {
+                // Single person visiting this node - use their color
+                color = personColors[node.peopleHere[0]];
+            } else if (node.isTarget) {
+                color = "#1976d2";
+            } else {
+                color = "#2196f3";
+            }
+            
+            nodeGroups.append("rect")
+                .attr("x", node.x0)
+                .attr("y", node.y0)
+                .attr("height", nodeHeight)
+                .attr("width", node.x1 - node.x0)
+                .attr("fill", color)
+                .attr("rx", borderRadius)
+                .attr("opacity", 0)
+                .transition()
+                .delay((node.stage + 1) * animationDuration * 0.7)
+                .duration(500)
+                .attr("opacity", 1);
+        } else {
+            // Draw split node with sections for each person
+            node.peopleHere.forEach((person, index) => {
+                const sectionY = node.y0 + (index * sectionHeight);
+                const isFirst = index === 0;
+                const isLast = index === peopleCount - 1;
+                
+                // Use path to create rounded corners on appropriate sides
+                const width = node.x1 - node.x0;
+                const x = node.x0;
+                const y = sectionY;
+                const h = sectionHeight;
+                
+                let pathD;
+                if (isFirst && isLast) {
+                    // Single section - round all corners
+                    pathD = `
+                        M ${x + borderRadius},${y}
+                        L ${x + width - borderRadius},${y}
+                        Q ${x + width},${y} ${x + width},${y + borderRadius}
+                        L ${x + width},${y + h - borderRadius}
+                        Q ${x + width},${y + h} ${x + width - borderRadius},${y + h}
+                        L ${x + borderRadius},${y + h}
+                        Q ${x},${y + h} ${x},${y + h - borderRadius}
+                        L ${x},${y + borderRadius}
+                        Q ${x},${y} ${x + borderRadius},${y}
+                        Z
+                    `;
+                } else if (isFirst) {
+                    // First section - round top corners only
+                    pathD = `
+                        M ${x + borderRadius},${y}
+                        L ${x + width - borderRadius},${y}
+                        Q ${x + width},${y} ${x + width},${y + borderRadius}
+                        L ${x + width},${y + h}
+                        L ${x},${y + h}
+                        L ${x},${y + borderRadius}
+                        Q ${x},${y} ${x + borderRadius},${y}
+                        Z
+                    `;
+                } else if (isLast) {
+                    // Last section - round bottom corners only
+                    pathD = `
+                        M ${x},${y}
+                        L ${x + width},${y}
+                        L ${x + width},${y + h - borderRadius}
+                        Q ${x + width},${y + h} ${x + width - borderRadius},${y + h}
+                        L ${x + borderRadius},${y + h}
+                        Q ${x},${y + h} ${x},${y + h - borderRadius}
+                        L ${x},${y}
+                        Z
+                    `;
+                } else {
+                    // Middle section - no rounded corners
+                    pathD = `
+                        M ${x},${y}
+                        L ${x + width},${y}
+                        L ${x + width},${y + h}
+                        L ${x},${y + h}
+                        Z
+                    `;
+                }
+                
+                nodeGroups.append("path")
+                    .attr("d", pathD)
+                    .attr("fill", personColors[person])
+                    .attr("opacity", 0)
+                    .transition()
+                    .delay((node.stage + 1) * animationDuration * 0.7)
+                    .duration(500)
+                    .attr("opacity", 1);
+                
+                // Add thin separator line between sections (except for last section)
+                if (index < peopleCount - 1) {
+                    nodeGroups.append("line")
+                        .attr("x1", node.x0)
+                        .attr("x2", node.x1)
+                        .attr("y1", sectionY + sectionHeight)
+                        .attr("y2", sectionY + sectionHeight)
+                        .attr("stroke", "white")
+                        .attr("stroke-width", 1)
+                        .attr("opacity", 0)
+                        .transition()
+                        .delay((node.stage + 1) * animationDuration * 0.7)
+                        .duration(500)
+                        .attr("opacity", 0.5);
+                }
+            });
+        }
+    });
 
     // Add target labels on the right side - LARGER FONT
     const targetLabels = svg.append("g")
@@ -145,7 +246,7 @@ export function renderDiagram(svg, nodes, links, personColors, animationDuration
         .attr("dy", "0.35em")
         .attr("text-anchor", "start")
         .text(d => d.name)  // This will already have "-Target-" prefix removed by dataGenerator
-        .style("font-size", "16px")  // Increased from 12px
+        .style("font-size", "16px")
         .style("font-family", "sans-serif")
         .style("fill", "#666")
         .style("font-weight", "bold")
@@ -157,5 +258,5 @@ export function renderDiagram(svg, nodes, links, personColors, animationDuration
         .duration(500)
         .attr("opacity", 1);
 
-    return { linkPaths, nodeRects };
+    return { linkPaths };
 }
