@@ -106,7 +106,7 @@ function App() {
                                 fontWeight: '500'
                             }}>
                                 Tracking crew movements across habitat modules
-                            </p
+                            </p>
                         </div>
                     </div>
 
