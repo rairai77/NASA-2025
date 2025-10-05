@@ -1,5 +1,5 @@
 # CrossPaths: Space Habitat Activity Flow Tracker
-[APP DEMO LINK](https://nasa-2025-eta.vercel.app)
+# [APP DEMO LINK](https://nasa-2025-eta.vercel.app)
 ### 2025 NASA Space Apps Challenge Submission ***"Your Home in Space: The Habitat Layout Creator"***
 
 [Project Slides]()
