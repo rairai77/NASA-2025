@@ -8,7 +8,7 @@ export function ConfigUI({ onSubmit }) {
         // Initialize empty schedule
         const initial = {};
         for (let i = 0; i < defaults.numberOfPeople; i++) {
-            const personKey = `Astronaut ${String.fromCharCode(65 + i)}`;
+            const personKey = `Crew ${String.fromCharCode(65 + i)}`;
             initial[personKey] = Array(defaults.numberOfHours).fill(null);
         }
         return initial;
@@ -18,7 +18,7 @@ export function ConfigUI({ onSubmit }) {
     const updateScheduleSize = (newPeople, newHours) => {
         const newSchedule = {};
         for (let i = 0; i < newPeople; i++) {
-            const personKey = `Astronaut ${String.fromCharCode(65 + i)}`;
+            const personKey = `Crew ${String.fromCharCode(65 + i)}`;
             newSchedule[personKey] = Array(newHours).fill(null);
             
             // Copy existing data if available
@@ -177,10 +177,10 @@ export function ConfigUI({ onSubmit }) {
                         pointerEvents: 'none'
                     }}></div>
                     <h1 style={{ margin: '0 0 10px 0', fontSize: '32px', fontWeight: '700', position: 'relative', zIndex: 1 }}>
-                        🛰️ ISS Daily Schedule Builder
+                        🛰️ Space Habitat Schedule Builder
                     </h1>
                     <p style={{ margin: 0, fontSize: '16px', opacity: 0.9, position: 'relative', zIndex: 1 }}>
-                        Plan astronaut activities across ISS modules and visualize their daily routines
+                        Plan crew activities across habitat modules and visualize daily routines in orbit
                     </p>
                 </div>
 
@@ -193,7 +193,7 @@ export function ConfigUI({ onSubmit }) {
                     <div style={{ display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '20px' }}>
                         <div style={{ flex: '0 0 auto' }}>
                             <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#6c757d', marginBottom: '5px' }}>
-                                ASTRONAUTS
+                                CREW MEMBERS
                             </label>
                             <input 
                                 type="number" 
@@ -352,7 +352,7 @@ export function ConfigUI({ onSubmit }) {
                     {/* Module Palette - Horizontal */}
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#6c757d', marginBottom: '10px' }}>
-                            🛰️ ISS MODULES (drag to schedule)
+                            🛰️ HABITAT MODULES (drag to schedule)
                         </label>
                         <div style={{
                             display: 'flex',
@@ -397,7 +397,7 @@ export function ConfigUI({ onSubmit }) {
                                         left: 0,
                                         zIndex: 10
                                     }}>
-                                        Astronaut
+                                        Crew Member
                                     </th>
                                     {Array.from({ length: numHours }, (_, i) => (
                                         <th key={i} style={{ 

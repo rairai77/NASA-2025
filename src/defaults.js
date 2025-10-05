@@ -6,23 +6,23 @@ export const defaults = {
     numberOfPeople: 5,
     numberOfHours: 9,
     
-    // Available ISS modules/areas that astronauts can visit
+    // Available space habitat modules/areas
     availableRooms: [
         "Galley",
-        "Sleep Station",
-        "Hygiene Module",
-        "Med Bay",
-        "Exercise Module",
-        "Cupola",
-        "Science Lab",
-        "Maintenance Bay",
+        "Sleep Quarters",
+        "Hygiene Bay",
+        "Medical Bay",
+        "Exercise Room",
+        "Observation Deck",
+        "Research Lab",
+        "Engineering Bay",
         "Command Center",
-        "Comm Module",
-        "Equipment Storage",
+        "Communications Hub",
+        "Storage Module",
         "Airlock"
     ],
     
-    // Astronaut colors (will be assigned A, B, C, D, E, etc.)
+    // Crew member colors (will be assigned A, B, C, D, E, etc.)
     personColors: [
         "#e74c3c",  // red
         "#3498db",  // blue

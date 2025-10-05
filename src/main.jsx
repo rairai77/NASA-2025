@@ -97,7 +97,7 @@ function App() {
                                 color: 'white',
                                 textShadow: '0 0 20px rgba(33,150,243,0.5)'
                             }}>
-                                🛰️ ISS Daily Activity Flow
+                                🛰️ Space Habitat Activity Flow
                             </h1>
                             <p style={{ 
                                 margin: '4px 0 0 0', 
@@ -105,7 +105,7 @@ function App() {
                                 color: 'rgba(255,255,255,0.7)',
                                 fontWeight: '500'
                             }}>
-                                Tracking astronaut movements across ISS modules in orbit
+                                Tracking crew movements across habitat modules in orbit
                             </p>
                         </div>
                     </div>
@@ -137,7 +137,7 @@ function App() {
                         fontSize: '14px'
                     }}>
                         <p style={{ margin: 0 }}>
-                            Each colored path represents an astronaut's journey through different ISS modules during their day
+                            Each colored path represents a crew member's journey through different habitat modules during their day
                         </p>
                     </div>
                 </div>
